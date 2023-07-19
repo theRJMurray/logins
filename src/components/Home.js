@@ -1,11 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from '../AuthContext';
 
 const Home = () => {
-    const navigate = useNavigate();
+    const { isLoggedIn } = useContext(AuthContext);
+
 
     return <div>
         home
-        <button onClick={() => navigate('/login', { replace: true })}>login</button>
+        you are <span>{isLoggedIn ? 'logged in' : 'not logged in'}</span>
     </div>
 }
 

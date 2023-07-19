@@ -3,7 +3,7 @@ const { MongoClient, ObjectID } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
 const bcrypt = require('bcrypt');
-
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 5000;
@@ -101,7 +101,8 @@ app.post('/api/register', async (req, res) => {
   
 	  if (isPasswordValid) {
 		// Passwords match, authentication successful
-		return res.json({ message: 'Login successful' });
+		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET);
+		return res.json({ message: 'Login successful', token });
 	  } else {
 		// Passwords do not match, authentication failed
 		return res.status(401).json({ error: 'Invalid password' });
@@ -111,6 +112,20 @@ app.post('/api/register', async (req, res) => {
 	  res.status(500).json({ error: 'An error occurred during login' });
 	}
   });
+
+  app.post('/api/logout', (req, res) => {
+	try {
+	  // Perform any necessary logout actions, such as invalidating the token or cleaning up session data
+	  // ...
+  
+	  // Send a success response
+	  res.json({ message: 'Logout successful' });
+	} catch (error) {
+	  console.error('Error during logout:', error);
+	  res.status(500).json({ error: 'An error occurred during logout' });
+	}
+  });
+  
   
 // app.post('/users', async (req, res) => {
 //   try {
@@ -122,6 +137,28 @@ app.post('/api/register', async (req, res) => {
 //     res.status(500).json({ error: 'An error occurred while creating the user' });
 //   }
 // });
+
+app.get('/api/protected-route', (req, res) => {
+	try {
+	  // Extract the token from the request header or other sources
+	  const token = req.headers.authorization.split(' ')[1]; // Assuming the token is sent in the 'Authorization' header as 'Bearer <token>'
+  
+	  // Verify and decode the token
+	  const decodedToken = jwt.verify(token, 'your-secret-key');
+  
+	  // Access the user data from the decoded token
+	  const userId = decodedToken.userId;
+	  const userRole = decodedToken.role;
+  
+	  // Perform actions for the protected route
+	  // ...
+  
+	  res.json({ message: 'Protected route accessed successfully' });
+	} catch (error) {
+	  console.error('Error during verification:', error);
+	  res.status(401).json({ error: 'Unauthorized' });
+	}
+  });
 
 //working route for creating a user
 app.post('/users', async (req, res) => {

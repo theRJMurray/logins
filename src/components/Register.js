@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Register = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
-    const navigate = useNavigate();
 
     const onChangeUsername = (event) => {
         setUsername(event.target.value)
@@ -42,8 +40,6 @@ const Register = () => {
     };
 
     return <div>
-        <button onClick={() => navigate('/login', { replace: true })}>login page</button>
-        register
         <form onSubmit={handleSubmit}>
             <input type="text" username="username" placeholder="username" onChange={e => onChangeUsername(e)} /> <br />
             <input type="text" password="password" placeholder="password" onChange={e => onChangePassword(e)} /> <br />
