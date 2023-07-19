@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState, useContext } from 'react';
+import { AuthContext } from '../AuthContext';
+
 
 const Register = () => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [email, setEmail] = useState('')
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+	const { register } = useContext(AuthContext);
 
     const onChangeUsername = (event) => {
         setUsername(event.target.value)
@@ -19,24 +21,7 @@ const Register = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-		console.log('handleSubmit firing, onto axios post')
-        axios.post('http://localhost:5000/api/register', {
-			username: username,
-			password: password,
-			email: email
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(response => {
-          // Handle success
-          console.log(response.data);
-        })
-        .catch(error => {
-          // Handle error
-          console.error(error);
-        });
+        register(username, password, email);
     };
 
     return <div>

@@ -9,6 +9,26 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
+    const register = (username, password, email) => {
+        axios.post('http://localhost:5000/api/register', {
+			username: username,
+			password: password,
+			email: email
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          // Handle success
+		  login(username, password);
+          console.log(response.data);
+        })
+        .catch(error => {
+          // Handle error
+          console.error(error);
+        });
+    }
   
     const login = (username, password) => {
       axios.post('http://localhost:5000/api/login', {
@@ -25,7 +45,7 @@ export const AuthProvider = ({ children }) => {
         const token = response.data.token;
         localStorage.setItem('token', token);
         setIsLoggedIn(true);
-        navigate('/')
+        navigate('/dashboard')
         })
         .catch(error => {
           // Handle error
@@ -37,11 +57,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
         console.log('token removed')
+		navigate('/')
     };
+
+	const VARIABLES = { isLoggedIn, setIsLoggedIn, 
+		user, setUser, login, logout, register }
   
     return (
       <AuthContext.Provider
-        value={{ isLoggedIn, setIsLoggedIn, user, setUser, login, logout }}
+        value={VARIABLES}
       >
         {children}
       </AuthContext.Provider>

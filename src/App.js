@@ -1,7 +1,7 @@
 //**SET UP PRIVATE ROUTE */
 
 import { useEffect, useContext } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -64,23 +64,10 @@ const App = () => {
 			<Route exact path="/" element={<Home />} />
 			<Route exact path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />}/>
 			<Route path="/register" element={<Register/>} />
-			<Route path="/dashboard" element={<PrivateRoute path="/dashboard" element={<Dashboard/>} isLoggedIn={isLoggedIn} />} />
+			{isLoggedIn ? <Route path="/dashboard" element={<Dashboard />} /> : <Route exact path="/" element={<Home />} />}
 			<Route element={<NotFound/>} />
 		</Routes>
 	</div>
 }
-
-const PrivateRoute = ({ component: Component, isLoggedIn, ...rest }) => (
-	<Route
-		{...rest}
-		render={(props) =>
-		isLoggedIn ? (
-			<Component {...props} />
-		) : (
-			<Navigate  to="/login" />
-		)
-		}
-	/>
-);
 
 export default App;
