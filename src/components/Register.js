@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const Login = () => {
+const Register = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [email, setEmail] = useState('')
     const navigate = useNavigate();
 
     const onChangeUsername = (event) => {
@@ -14,12 +15,17 @@ const Login = () => {
     const onChangePassword = (event) => {
         setPassword(event.target.value)
     }
+    const onChangeEmail = (event) => {
+        setEmail(event.target.value)
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:5000/api/login', {
+		console.log('handleSubmit firing, onto axios post')
+        axios.post('http://localhost:5000/api/register', {
 			username: username,
-			password: password
+			password: password,
+			email: email
         }, {
           headers: {
             'Content-Type': 'application/json'
@@ -36,14 +42,15 @@ const Login = () => {
     };
 
     return <div>
-        <button onClick={() => navigate('/register', { replace: true })}>register page</button>
+        <button onClick={() => navigate('/login', { replace: true })}>login page</button>
+        register
         <form onSubmit={handleSubmit}>
             <input type="text" username="username" placeholder="username" onChange={e => onChangeUsername(e)} /> <br />
             <input type="text" password="password" placeholder="password" onChange={e => onChangePassword(e)} /> <br />
-            <input type="submit" value="Login" />
+            <input type="text" password="email" placeholder="email" onChange={e => onChangeEmail(e)} /> <br />
+            <input type="submit" value="register" />
         </form>
     </div>
 }
 
-export default Login;
-
+export default Register;

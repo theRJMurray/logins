@@ -2,22 +2,27 @@ const express = require('express');
 const { MongoClient, ObjectID } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config();
+const bcrypt = require('bcrypt');
+
 
 const app = express();
 const port = 5000;
-// const url = process.env.MONGODB_URL;
 const dbName = 'dashboard';
 
-app.use(express.json(), cors())
+app.use(express.json())
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}))
 
 // Connect to MongoDB
-const client = new MongoClient(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@hypecluster.wqd70l2.mongodb.net/?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new MongoClient(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@hypecluster.wqd70l2.mongodb.net/?retryWrites=true&w=majority&ssl=true`, { useNewUrlParser: true, useUnifiedTopology: true });
 let db;
 
 async function connect() {
   try {
     await client.connect();
-    console.log('Connected to MongoDB');
+    console.log('Database in orbit');
     db = client.db(dbName);
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
@@ -27,20 +32,90 @@ async function connect() {
 connect();
 
 // Routes
-app.get('/users', async (req, res) => {
-  try {
-    const users = await db.collection('users').find().toArray();
-    res.json(users);
-  } catch (error) {
-    console.error('Error retrieving users:', error);
-    res.status(500).json({ error: 'An error occurred while retrieving users' });
-  }
-});
+app.post('/api/register', async (req, res) => {
+    console.log('axios post reached backend')
+    try {
+		// Retrieve the user input from the request body
+		const { username, password, email } = req.body;
+  
+		// Validate email format using regex
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+		  return res.status(400).json({ error: 'Invalid email format' });
+		}
 
+		// Hash the password
+		const hashedPassword = await bcrypt.hash(password, 10);
+
+		// Perform server-side validation
+		if (!username || !password || !email) {
+			// If any required field is missing, respond with a validation error
+			return res.status(400).json({ error: 'All fields are required' });
+		}
+  
+      // Check if the username or email already exists in the database
+      const existingUser = await db.collection('users').findOne({ $or: [{ username }, { email }] });
+      if (existingUser) {
+        return res.status(409).json({ error: 'Username or email already exists' });
+      }
+  
+      // If all validation checks pass, proceed with user registration
+      // Insert the user data into the database or perform any other necessary registration logic
+      try {
+        const newUser = {
+          username: username,
+          password: hashedPassword,
+          email: email
+        };
+
+        await db.collection('users').insertOne(newUser);
+        res.json({ message: 'Registration successful' });
+      } catch (error) {
+        console.log(error)
+      }
+
+  
+      // Save the new user to the database
+    
+
+      // Send a success response
+    } catch (error) {
+      console.error('Error during registration:', error);
+      res.status(500).json({ error: 'An error occurred during registration' });
+    }
+  });
+  
+  app.post('/api/login', async (req, res) => {
+	try {
+	  const { username, password } = req.body;
+  
+	  // Retrieve the user data from the database based on the username
+	  const user = await db.collection('users').findOne({ username });
+  
+	  if (!user) {
+		return res.status(404).json({ error: 'User not found' });
+	  }
+  
+	  // Compare the provided password with the hashed password stored in the user object
+	  const isPasswordValid = await bcrypt.compare(password, user.password);
+  
+	  if (isPasswordValid) {
+		// Passwords match, authentication successful
+		return res.json({ message: 'Login successful' });
+	  } else {
+		// Passwords do not match, authentication failed
+		return res.status(401).json({ error: 'Invalid password' });
+	  }
+	} catch (error) {
+	  console.error('Error during login:', error);
+	  res.status(500).json({ error: 'An error occurred during login' });
+	}
+  });
+  
 // app.post('/users', async (req, res) => {
 //   try {
 //     const newUser = req.body;
-//     const result = await db.collection('users').insertOne(newUser);
+//     
 //     res.status(201).json(result.ops[0]);
 //   } catch (error) {
 //     console.error('Error creating user:', error);
@@ -88,5 +163,5 @@ app.delete('/users/:id', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`Ready for takeoff on port ${port}`);
 });
