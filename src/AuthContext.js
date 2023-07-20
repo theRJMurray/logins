@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
         .then(response => {
 			// Handle success
 			login(username, password);
-			console.log(response.data);
         })
         .catch(error => {
 			// Handle error
@@ -30,6 +29,21 @@ export const AuthProvider = ({ children }) => {
         });
     }
   
+	const updateBio = (bio) => {
+		const token = localStorage.getItem('token');
+		axios.post('http://localhost:5000/api/update-bio', {token, bio}, {
+            'Content-Type': 'application/json',
+        })
+        .then(response => {
+			// Handle success
+			setUser({...user, bio: bio})
+        })
+        .catch(error => {
+			// Handle error
+			console.error(error);
+        });
+	}
+
     const login = (username, password) => {
       axios.post('http://localhost:5000/api/login', {
 			username: username,
@@ -42,13 +56,11 @@ export const AuthProvider = ({ children }) => {
         .then(response => {
           	// Handle success
 		  	const { email, username } = response.data.user;
-			console.log(response.data);
 			const token = response.data.token;
 			localStorage.setItem('token', token);
 			setIsLoggedIn(true);
 			setUser({username, email})
 			// localStorage.setItem('user', JSON.stringify(user));
-			console.log(email, username);
 			navigate('/dashboard')
         })
         .catch(error => {
@@ -60,13 +72,12 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
-        console.log('token removed')
 		setUser({})
 		navigate('/')
     };
 
 	const VARIABLES = { isLoggedIn, setIsLoggedIn, 
-		user, setUser, login, logout, register }
+		user, setUser, login, logout, register, updateBio }
   
     return (
       <AuthContext.Provider

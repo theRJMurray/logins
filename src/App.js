@@ -1,5 +1,4 @@
 // better login/register experience
-// give the user the ability to update a field on their profile
 // host live
 // do CI, dev staging prod
 // minor improvements all over, minor features
@@ -37,6 +36,7 @@ const App = () => {
 		const token = localStorage.getItem('token');
 
 		if (token) {
+			setIsLoggedIn(true);
 			axios.post('http://localhost:5000/api/verify', {
 				token
 			}, {
@@ -45,9 +45,8 @@ const App = () => {
 			}
 			})
 			.then(response => {
-				const { email, username } = response.data;
-				setIsLoggedIn(true);
-				setUser({username, email})
+				const { email, username, bio } = response.data;
+				setUser({username, email, bio})
 				navigate('/dashboard')
 			})
 			.catch(error => {
