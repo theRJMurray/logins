@@ -1,4 +1,4 @@
-// better login/register experience
+// better login/register experience -- check username and email on update, before signup button becomes available
 // host live
 // do CI, dev staging prod
 // minor improvements all over, minor features
