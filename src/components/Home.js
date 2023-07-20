@@ -1,13 +1,16 @@
 import { useContext } from 'react';
 import { AuthContext } from '../AuthContext';
+import Login from './Login'
 
 const Home = () => {
     const { isLoggedIn } = useContext(AuthContext);
 
-
     return <div>
-        home
-        you are <span>{isLoggedIn ? 'logged in' : 'not logged in'}</span>
+        <h1 style={{textAlign: 'center'}}>Dashboard</h1>
+        <div>
+        	<Login />
+        </div>
+        
     </div>
 }
 

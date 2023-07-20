@@ -1,4 +1,8 @@
-//**SET UP PRIVATE ROUTE */
+// better login/register experience
+// give the user the ability to update a field on their profile
+// host live
+// do CI, dev staging prod
+// minor improvements all over, minor features
 
 import { useEffect, useContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
@@ -9,7 +13,7 @@ import Dashboard from './components/Dashboard';
 import NotFound from './components/NotFound';
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from './AuthContext';
-
+import axios from 'axios';
 
 const button_styles = {
     border: 0,
@@ -26,30 +30,34 @@ const button_styles = {
   }
 
 const App = () => {
-	const { logout, isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+	const { logout, isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext);
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		// Check if the token exists in local storage
 		const token = localStorage.getItem('token');
-		setIsLoggedIn(!!token)	
-		}, [isLoggedIn, setIsLoggedIn]);
 
-	//   const logout = () => {
-	// 	// Send a request to the server to invalidate the token
-	// 	axios.post('http://localhost:5000/api/logout')
-	// 	  .then((response) => {
-	// 		// Clear the token from local storage or other client-side storage
-			
-	// 		// Perform any other necessary actions upon successful logout
-	// 		// For example, you might redirect the user to the login page or reset the state.
-	// 		// ...
-	// 	  })
-	// 	  .catch((error) => {
-	// 		// Handle error during logout, if needed
-	// 		console.error('Error during logout:', error);
-	// 	  });
-	//   };
+		if (token) {
+			axios.post('http://localhost:5000/api/verify', {
+				token
+			}, {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+			})
+			.then(response => {
+				const { email, username } = response.data;
+				setIsLoggedIn(true);
+				setUser({username, email})
+				navigate('/dashboard')
+			})
+			.catch(error => {
+				console.error(error);
+			});
+
+			setIsLoggedIn(!!token)	
+		}
+
+	}, [setUser, setIsLoggedIn, navigate]);
 
 	return <div>
 		<div style={{width: '100%', height: 80, background: '#519171'}}>

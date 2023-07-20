@@ -34,14 +34,14 @@ connect();
 // Routes
 app.post('/api/register', async (req, res) => {
     console.log('axios post reached backend')
+
     try {
-		// Retrieve the user input from the request body
 		const { username, password, email } = req.body;
-  
-		// Validate email format using regex
+
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 		if (!emailRegex.test(email)) {
-		  return res.status(400).json({ error: 'Invalid email format' });
+			return res.status(400).json({ error: 'Invalid email format' });
 		}
 
 		// Hash the password
@@ -55,19 +55,21 @@ app.post('/api/register', async (req, res) => {
   
       // Check if the username or email already exists in the database
       const existingUser = await db.collection('users').findOne({ $or: [{ username }, { email }] });
-      if (existingUser) {
+	  if (existingUser) {
         return res.status(409).json({ error: 'Username or email already exists' });
       }
   
       // If all validation checks pass, proceed with user registration
       // Insert the user data into the database or perform any other necessary registration logic
-      try {
+      console.log('database')
+	  try {
+		
         const newUser = {
-          username: username,
-          password: hashedPassword,
-          email: email
+			username: username,
+			password: hashedPassword,
+			email: email
         };
-
+		
         await db.collection('users').insertOne(newUser);
         res.json({ message: 'Registration successful' });
       } catch (error) {
@@ -85,46 +87,65 @@ app.post('/api/register', async (req, res) => {
     }
   });
   
-  app.post('/api/login', async (req, res) => {
+// app.get('/api/user', async (req, res) => {
+// 	try {
+// 		const { username, password } = req.body;
+  
+// 		// Retrieve the user data from the database based on the username
+// 		const user = await db.collection('users').findOne({ username });
+	
+// 		if (!user) {
+// 		  return res.status(404).json({ error: 'User not found' });
+// 		}
+// 	} catch (error) {
+
+// 	}
+// })
+
+
+/////////
+//LOGIN//
+/////////
+app.post('/api/login', async (req, res) => {
 	try {
-	  const { username, password } = req.body;
-  
-	  // Retrieve the user data from the database based on the username
-	  const user = await db.collection('users').findOne({ username });
-  
-	  if (!user) {
-		return res.status(404).json({ error: 'User not found' });
-	  }
-  
-	  // Compare the provided password with the hashed password stored in the user object
-	  const isPasswordValid = await bcrypt.compare(password, user.password);
-  
-	  if (isPasswordValid) {
+		const { username, password } = req.body;
+
+		// Retrieve the user data from the database based on the username
+		const user = await db.collection('users').findOne({ username });
+
+		if (!user) {
+			return res.status(404).json({ error: 'User not found' });
+		}
+
+		// Compare the provided password with the hashed password stored in the user object
+		const isPasswordValid = await bcrypt.compare(password, user.password);
+
+		if (isPasswordValid) {
 		// Passwords match, authentication successful
-		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET);
-		return res.json({ message: 'Login successful', token });
-	  } else {
+		const token = jwt.sign({ username: user.username, email: user.email }, process.env.JWT_SECRET);
+		return res.json({ message: 'Login successful', token, user });
+		} else {
 		// Passwords do not match, authentication failed
 		return res.status(401).json({ error: 'Invalid password' });
-	  }
+		}
 	} catch (error) {
-	  console.error('Error during login:', error);
-	  res.status(500).json({ error: 'An error occurred during login' });
+		console.error('Error during login:', error);
+		res.status(500).json({ error: 'An error occurred during login' });
 	}
-  });
+});
 
-  app.post('/api/logout', (req, res) => {
-	try {
-	  // Perform any necessary logout actions, such as invalidating the token or cleaning up session data
-	  // ...
+//   app.post('/api/logout', (req, res) => {
+// 	try {
+// 	  // Perform any necessary logout actions, such as invalidating the token or cleaning up session data
+// 	  // ...
   
-	  // Send a success response
-	  res.json({ message: 'Logout successful' });
-	} catch (error) {
-	  console.error('Error during logout:', error);
-	  res.status(500).json({ error: 'An error occurred during logout' });
-	}
-  });
+// 	  // Send a success response
+// 	  res.json({ message: 'Logout successful' });
+// 	} catch (error) {
+// 	  console.error('Error during logout:', error);
+// 	  res.status(500).json({ error: 'An error occurred during logout' });
+// 	}
+//   });
   
   
 // app.post('/users', async (req, res) => {
@@ -138,44 +159,45 @@ app.post('/api/register', async (req, res) => {
 //   }
 // });
 
-app.get('/api/protected-route', (req, res) => {
+app.post('/api/verify', (req, res) => {
 	try {
-	  // Extract the token from the request header or other sources
-	  const token = req.headers.authorization.split(' ')[1]; // Assuming the token is sent in the 'Authorization' header as 'Bearer <token>'
-  
-	  // Verify and decode the token
-	  const decodedToken = jwt.verify(token, 'your-secret-key');
-  
-	  // Access the user data from the decoded token
-	  const userId = decodedToken.userId;
-	  const userRole = decodedToken.role;
-  
-	  // Perform actions for the protected route
-	  // ...
-  
-	  res.json({ message: 'Protected route accessed successfully' });
+		// Extract the token from the request header or other sources
+		const token = req.body.token; // Assuming the token is sent in the 'Authorization' header as 'Bearer <token>'
+
+		// Verify and decode the token
+		const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+		// Access the user data from the decoded token
+		const username = decodedToken.username;
+		const email = decodedToken.email;
+
+		// Perform actions for the protected route
+		// ...
+
+		res.json({ message: 'Protected route accessed successfully', username, email});
 	} catch (error) {
-	  console.error('Error during verification:', error);
-	  res.status(401).json({ error: 'Unauthorized' });
+		console.error('Error during verification:', error);
+		res.status(401).json({ error: 'Unauthorized' });
 	}
-  });
+});
 
 //working route for creating a user
-app.post('/users', async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      const user = { username, password };
+// app.post('/users', async (req, res) => {
+//     try {
+//       const { username, password } = req.body;
+//       const user = { username, password };
   
-      //database=dashboard, collection=users
-      const result = await db.collection('users').insertOne(user);
-    //   res.status(201).json(result.ops[0]);
-    } catch (error) {
-      console.error('Error creating user:', error);
-      res.status(500).json({ error: 'An error occurred while creating the user' });
-    }
-  });
+//       //database=dashboard, collection=users
+//       const result = await db.collection('users').insertOne(user);
+//     //   res.status(201).json(result.ops[0]);
+//     } catch (error) {
+//       console.error('Error creating user:', error);
+//       res.status(500).json({ error: 'An error occurred while creating the user' });
+//     }
+//   });
   
 
+//todo
 app.put('/users/:id', async (req, res) => {
   try {
     const userId = req.params.id;
@@ -188,6 +210,7 @@ app.put('/users/:id', async (req, res) => {
   }
 });
 
+//todo
 app.delete('/users/:id', async (req, res) => {
   try {
     const userId = req.params.id;
