@@ -9,6 +9,7 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import UserProfile from './components/UserProfile';
 import NotFound from './components/NotFound';
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from './AuthContext';
@@ -47,7 +48,6 @@ const App = () => {
 			.then(response => {
 				const { email, username, bio } = response.data;
 				setUser({username, email, bio})
-				navigate('/dashboard')
 			})
 			.catch(error => {
 				console.error(error);
@@ -73,6 +73,10 @@ const App = () => {
 			<Route path="/register" element={<Register/>} />
 			{isLoggedIn ? <Route path="/dashboard" element={<Dashboard />} /> : <Route exact path="/" element={<Home />} />}
 			<Route element={<NotFound/>} />
+			<Route
+				path="/:username"
+				element={<UserProfile />} 
+			/>
 		</Routes>
 	</div>
 }

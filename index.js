@@ -116,6 +116,24 @@ app.post('/api/login', async (req, res) => {
 	}
 });
 
+// Server-side route for fetching a user profile by username
+app.get('/:username', async (req, res) => {
+	try {
+	  const { username } = req.params;
+	  // Fetch the user's profile data from the database based on the username
+	  const userProfile = await db.collection('users').findOne({ username });
+  
+	  if (userProfile) {
+		res.json(userProfile);
+	  } else {
+		res.status(404).json({ error: 'User not found' });
+	  }
+	} catch (error) {
+	  console.error('Error fetching user profile:', error);
+	  res.status(500).json({ error: 'An error occurred while fetching user profile' });
+	}
+  });
+
 ///////////
 //VERIFY//
 /////////
